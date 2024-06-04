@@ -8,7 +8,7 @@ struct Test;
 // PoolMixin to integrate new and deleter operators to TestClass
 template <typename T> class PoolMixin {
 public:
-  static inline MemPool<T> pool{15};
+  static inline MemoryPool<T> pool{15};
 
 public:
   void *operator new(std::size_t _size) { return pool.get(); };
@@ -34,17 +34,9 @@ public:
 };
 
 // printing the memory pool
-void print_memory_pool(MemPool<Test> pool) {
-  for (int i = pool.size; i < pool.data.size(); i++) {
-    std::cout << i << ") - {" << pool.data[i].a << ", " << pool.data[i].b << "}"
-              << "\n";
-  }
-}
 
 int main() {
-  std::size_t pool_size = 15;
-  // MemPool<Test> pool(pool_size, {0, 5});
-  std::cout << "Created memory pool with size: " << pool_size << "\n";
+  std::cout << "Created memory pool with size: 15\n";
 
   std::size_t objects_count = 5;
   for (int i = 0; i < objects_count; i++) {
@@ -52,20 +44,6 @@ int main() {
     Test *test2 = new Test(68, 91);
   }
 
-  // std::cout << "Pool size after creating " << objects_count << " objects - "
-  //          << pool.data.size() - pool.size << "\n";
-
-  //{
-  // std::unique_ptr<Test, D<Test>> testU = pool.unique(100, 200);
-  // std::cout << "Unique Ptr: {a: " << testU->a << ", b: " << testU->b <<
-  // "}\n";
-  //}
-
-  std::cout << "Before resize: \n";
-  print_memory_pool(PoolMixin<Test>::pool);
-
   PoolMixin<Test>::pool.resize(20);
-  std::cout << "After resize: \n";
-  print_memory_pool(PoolMixin<Test>::pool);
   return 0;
 }
