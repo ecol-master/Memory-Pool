@@ -1,21 +1,7 @@
-#include "../includes/memory_pool.h"
+#include "../includes/pool_mixin.h"
 #include <cstddef>
 
 
-template <typename T, std::size_t Size> class PoolMixin {
-public:
-  static inline MemoryPool<T> pool{Size};
-
-public:
-  void *operator new(std::size_t _size) { return pool.get(); };
-
-  void operator delete(void *p) noexcept {
-    bool result = pool.put((T *)p);
-    if (!result) {
-      // exception to failed delete object
-    }
-  };
-};
 // Test structure for testing MemoryPool
 struct Test : PoolMixin<Test, 10> {
 public:
