@@ -1,11 +1,7 @@
-#include "../src/memory_pool.cpp"
+#include "../includes/memory_pool.h"
 #include <cstddef>
-#include <iostream>
-
-struct Test;
 
 
-// PoolMixin to integrate new and deleter operators to TestClass
 template <typename T, std::size_t Size> class PoolMixin {
 public:
   static inline MemoryPool<T> pool{Size};
@@ -14,13 +10,12 @@ public:
   void *operator new(std::size_t _size) { return pool.get(); };
 
   void operator delete(void *p) noexcept {
-    bool result = pool.put((Test *)p);
+    bool result = pool.put((T *)p);
     if (!result) {
       // exception to failed delete object
     }
   };
 };
-
 // Test structure for testing MemoryPool
 struct Test : PoolMixin<Test, 10> {
 public:
@@ -36,7 +31,8 @@ public:
 // printing the memory pool
 
 int main() {
-  Logger::get_instance()->log(LogLevel::INFO, "Created memory pool with size: 15");
+  Logger::get_instance()->log(LogLevel::INFO,
+                              "Created memory pool with size: 15");
 
   std::size_t objects_count = 5;
   for (int i = 0; i < objects_count; i++) {
