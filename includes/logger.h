@@ -1,6 +1,9 @@
 #include <fstream>
 #include <iostream>
 
+#define LOG_FILE "info.log"
+#define LOG_FLAGS std::ofstream::out
+
 enum class LogLevel {
   //
   ERROR = 0,
@@ -22,10 +25,12 @@ private:
   std::ofstream log_file_;
 
 protected:
-  Logger() { log_output_ = LogOutput::CONSOLE; };
+  Logger() : log_file_{LOG_FILE, LOG_FLAGS} {
+    log_output_ = LogOutput::FILE;
+  };
   Logger(std::string log_filename_);
 
-  ~Logger() = default;
+  ~Logger() { log_file_.close(); };
 
 public:
   // удаление методов копирования и присваивания
@@ -39,7 +44,7 @@ public:
     return logger_;
   };
 
-  void Log(LogLevel _level, std::string _message);
+  void log(LogLevel _level, std::string _message);
 
   void set_output_file(std::string output_filename_);
 };

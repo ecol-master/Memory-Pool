@@ -11,3 +11,4 @@ MAIN = cmd/main.cpp
 all:
 	@echo "Compliing $< -> $@"
 	$(CXX) $(COMPILE_FLAGS) $(SOURCES) $(MAIN) -o $(BIN_NAME)
+	./${BIN_NAME}

@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <vector>
 
 // Deleter for Objetcs
@@ -42,7 +43,12 @@ public:
   ~MemoryPool() { data_.clear(); }
 
   // Re-allocates memory to fit new capacity
-  void resize(size_t new_cap) { data_.resize(new_cap); };
+  void resize(size_t new_cap) {
+    Logger::get_instance()->log(LogLevel::INFO, "RESIZE memory pool " +
+                                             std::to_string(data_.size()) +
+                                             " -> " + std::to_string(new_cap));
+    data_.resize(new_cap);
+  };
 
   // Creates object inside memory pool and provides pointer to it can return
   // nullptr in case if memory cannot be allocated.
@@ -55,8 +61,8 @@ public:
     pool_size_++;
 
     cell = T(std::forward<Args>(args)...);
-    Logger::get_instance()->Log(LogLevel::INFO,
-                                "get new object from memory pool, pool_size: " +
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "GET new object from memory pool, pool_size: " +
                                     std::to_string(pool_size_));
 
     return &cell;
@@ -71,8 +77,8 @@ public:
     pool_size_--;
     elem->~T();
     data_[pool_size_] = T();
-    Logger::get_instance()->Log(LogLevel::INFO,
-                                "put object into memory pool, pool_size: " +
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "PUT object into memory pool, pool_size: " +
                                     std::to_string(pool_size_));
 
     return true;
@@ -80,6 +86,9 @@ public:
 
   // Creates object in memory pool and provides unique pointer to it
   template <class... Args> std::unique_ptr<T, D<T>> unique(Args &&...args) {
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "request to get UNIQUE ptr from pool");
+
     T *elem = this->get(std::forward<Args>(args)...);
     D<T> deleter;
     return std::unique_ptr<T, D<T>>(elem, deleter);
@@ -87,6 +96,9 @@ public:
 
   // Creates object in memory pool and provides shared pointer to it
   template <class... Args> std::shared_ptr<T> shared(Args &&...args) {
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "request to get SHARED ptr from pool");
+
     return std::shared_ptr<T>(this->get(std::forward<Args>(args)...));
   };
 };

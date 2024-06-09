@@ -1,9 +1,10 @@
 #include "../includes/logger.h"
+#include <fstream>
 #include <string>
 
-Logger* Logger::logger_{nullptr};
+Logger *Logger::logger_{nullptr};
 
-void Logger::Log(LogLevel _level, std::string _message) {
+void Logger::log(LogLevel _level, std::string _message) {
   std::string msg_prefix_;
 
   switch (_level) {
@@ -25,13 +26,14 @@ void Logger::Log(LogLevel _level, std::string _message) {
   if (log_output_ == LogOutput::CONSOLE) {
     std::cout << log_msg_ << "\n";
   } else {
+    log_file_.flush();
     log_file_ << log_msg_ << "\n";
   }
 }
 
 void Logger::set_output_file(std::string output_filename_) {
   log_output_ = LogOutput::FILE;
-  log_file_.open(output_filename_);
+  log_file_.open(output_filename_, LOG_FLAGS);
 
   if (!log_file_.good()) {
     std::cout << "can not set output file: " << output_filename_ << "\n";

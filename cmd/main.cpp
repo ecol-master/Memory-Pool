@@ -4,7 +4,6 @@
 
 struct Test;
 
-// MemPool<Test> pool(15);
 
 // PoolMixin to integrate new and deleter operators to TestClass
 template <typename T, std::size_t Size> class PoolMixin {
@@ -37,7 +36,7 @@ public:
 // printing the memory pool
 
 int main() {
-  std::cout << "Created memory pool with size: 15\n";
+  Logger::get_instance()->log(LogLevel::INFO, "Created memory pool with size: 15");
 
   std::size_t objects_count = 5;
   for (int i = 0; i < objects_count; i++) {
