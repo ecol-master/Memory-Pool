@@ -25,48 +25,48 @@ template <typename T> struct D {
 template <typename T> class MemoryPool {
   // values
 private:
-  int pool_size_;
-  std::vector<T> data_;
+  int size_;
+  std::vector<T> free_memory_;
 
 public:
   // Default constructor, does not allocate any memory
   MemoryPool() = default;
 
   // Allocates memory for given number of objects
-  MemoryPool(size_t _capacity) : pool_size_{0} {
-    data_ = std::vector<T>(_capacity);
+  MemoryPool(size_t _capacity) : size_{0} {
+    free_memory_ = std::vector<T>(_capacity);
   };
 
   // Allocates memory for given number of objects and initializes them with
   // `_default_value`
-  MemoryPool(std::size_t _capacity, const T &_default_value) : pool_size_{0} {
-    data_ = std::vector<T>(_capacity, _default_value);
+  MemoryPool(std::size_t _capacity, const T &_default_value) : size_{0} {
+    free_memory_ = std::vector<T>(_capacity, _default_value);
   };
 
-  ~MemoryPool() { data_.clear(); }
+  ~MemoryPool() { free_memory_.clear(); }
 
   // Re-allocates memory to fit new capacity
   void resize(size_t new_cap) {
     Logger::get_instance()->log(
-        LogLevel::INFO, "RESIZE memory pool " + std::to_string(data_.size()) +
+        LogLevel::INFO, "RESIZE memory pool " + std::to_string(size_ - free_memory_.size()) +
                             " -> " + std::to_string(new_cap));
-    data_.resize(new_cap);
+    size_ = new_cap;
+    free_memory_.resize(new_cap);
   };
 
   // Creates object inside memory pool and provides pointer to it can return
   // nullptr in case if memory cannot be allocated.
   template <class... Args> T *get(Args &&...args) {
-    if (pool_size_ == data_.size()) {
+    if (!free_memory_.size()) {
       return nullptr;
     }
 
-    auto &cell = data_[pool_size_];
-    pool_size_++;
+    auto &cell = free_memory_.pop_back();
 
     cell = T(std::forward<Args>(args)...);
     Logger::get_instance()->log(LogLevel::INFO,
-                                "GET new object from memory pool, pool_size: " +
-                                    std::to_string(pool_size_));
+                                "GET new object from memory pool, size: " +
+                                    std::to_string(size_));
 
     return &cell;
   };
@@ -74,15 +74,14 @@ public:
   // Returns object to pool, calls destructor.
   // Returns bool to indicate error (maybe object is not from this pool?)
   bool put(T *elem) {
-    if (pool_size_ == 0) {
+    if (size_ == free_memory_.size()) {
       throw PoolIsEmpty();
     }
-    pool_size_--;
     elem->~T();
-    data_[pool_size_] = T();
+    free_memory_.push_back(T());
     Logger::get_instance()->log(LogLevel::INFO,
-                                "PUT object into memory pool, pool_size: " +
-                                    std::to_string(pool_size_));
+                                "PUT object into memory pool, pool size: " +
+                                    std::to_string(size_));
 
     return true;
   };
@@ -93,8 +92,7 @@ public:
                                 "request to get UNIQUE ptr from pool");
 
     T *elem = this->get(std::forward<Args>(args)...);
-    D<T> deleter;
-    return std::unique_ptr<T, D<T>>(elem, deleter);
+    return std::unique_ptr<T, D<T>>(elem, D<T>());
   };
 
   // Creates object in memory pool and provides shared pointer to it
