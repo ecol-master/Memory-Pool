@@ -25,7 +25,7 @@ template <typename T> struct D {
 template <typename T> class MemoryPool {
   // values
 private:
-  int size_;
+  size_t size_;
   std::vector<T> free_memory_;
 
 public:
@@ -33,13 +33,13 @@ public:
   MemoryPool() = default;
 
   // Allocates memory for given number of objects
-  MemoryPool(size_t _capacity) : size_{0} {
+  MemoryPool(size_t _capacity) : size_{_capacity} {
     free_memory_ = std::vector<T>(_capacity);
   };
 
   // Allocates memory for given number of objects and initializes them with
   // `_default_value`
-  MemoryPool(std::size_t _capacity, const T &_default_value) : size_{0} {
+  MemoryPool(std::size_t _capacity, const T &_default_value) : size_{_capacity} {
     free_memory_ = std::vector<T>(_capacity, _default_value);
   };
 
@@ -61,12 +61,13 @@ public:
       return nullptr;
     }
 
-    auto &cell = free_memory_.pop_back();
+    auto &cell = free_memory_[free_memory_.size() - 1];
+    free_memory_.pop_back();
 
     cell = T(std::forward<Args>(args)...);
     Logger::get_instance()->log(LogLevel::INFO,
                                 "GET new object from memory pool, size: " +
-                                    std::to_string(size_));
+                                    std::to_string(free_memory_.size()));
 
     return &cell;
   };
@@ -81,7 +82,7 @@ public:
     free_memory_.push_back(T());
     Logger::get_instance()->log(LogLevel::INFO,
                                 "PUT object into memory pool, pool size: " +
-                                    std::to_string(size_));
+                                    std::to_string(free_memory_.size()));
 
     return true;
   };

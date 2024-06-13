@@ -18,7 +18,7 @@ public:
 
 int main() {
   Logger::get_instance()->log(LogLevel::INFO,
-                              "Created memory pool with size: 15");
+                              "Created memory pool with size: 10");
 
   std::size_t objects_count = 5;
   for (int i = 0; i < objects_count; i++) {
