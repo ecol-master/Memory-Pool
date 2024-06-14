@@ -9,7 +9,7 @@ public:
 public:
   void *operator new(std::size_t _size) { return pool.get(); };
 
-  void operator delete(void *p) noexcept {
+  void operator delete(void *p) {
     bool result = pool.put((T *)p);
     if (!result) {
       // exception to failed delete object

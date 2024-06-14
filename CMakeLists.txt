@@ -21,6 +21,7 @@ include_directories(include/)
 # List of directories that contain header files
 
 add_subdirectory(src)
+add_subdirectory(cmd)
 
 set(ALL_HEADER_DIRS
   include

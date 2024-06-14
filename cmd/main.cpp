@@ -20,10 +20,32 @@ int main() {
   Logger::get_instance()->log(LogLevel::INFO,
                               "Created memory pool with size: 10");
 
+  auto a = new Test(70, 90);
+  auto b = new Test(80, 90);
+  PoolMixin<Test, 10>::pool.put(b);
+  PoolMixin<Test, 10>::pool.put(a);
+
+  std::vector<Test*> tests;
+
+  for (int i = 0; i < 10; i++){
+    tests.push_back(new Test(i, 10));
+  }
+
+  for (int i = 9; i >= 0; i--){
+    delete tests[i];
+  }
+
+
   std::size_t objects_count = 5;
   for (int i = 0; i < objects_count; i++) {
     std::shared_ptr<Test> test = PoolMixin<Test, 10>::pool.shared(10, 20);
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "recieve shared ptr from pool, object: a: " +
+                                    std::to_string(test->a) + " , b:" + std::to_string(test->b));
     Test *test2 = new Test(68, 91);
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "recieve ptr from pool, object: a: " +
+                                    std::to_string(test2->a) + " , b:" + std::to_string(test2->b));
   }
 
   PoolMixin<Test, 10>::pool.resize(20);

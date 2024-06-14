@@ -6,17 +6,15 @@
 #define LOG_FILE "info.log"
 #define LOG_FLAGS std::ofstream::out
 
-enum class LogLevel {
-  //
+enum LogLevel {
   ERROR = 0,
   WARNING = 1,
   INFO = 2,
 };
 
-enum class LogOutput {
-  //
-  CONSOLE,
-  FILE
+enum LogOutput {
+  CONSOLE = 1,
+  JOURNAL = 2,
 };
 
 class Logger {
@@ -27,8 +25,9 @@ private:
   std::ofstream log_file_;
 
 protected:
-  Logger() : log_file_{LOG_FILE, LOG_FLAGS} {
-    log_output_ = LogOutput::FILE;
+  Logger(){
+    log_file_.open(LOG_FILE, LOG_FLAGS);
+    log_output_ = JOURNAL;
   };
   Logger(std::string log_filename_);
 

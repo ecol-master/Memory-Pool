@@ -32,7 +32,7 @@ void Logger::log(LogLevel _level, std::string _message) {
 }
 
 void Logger::set_output_file(std::string output_filename_) {
-  log_output_ = LogOutput::FILE;
+  log_output_ = JOURNAL;
   log_file_.open(output_filename_, LOG_FLAGS);
 
   if (!log_file_.good()) {
