@@ -38,7 +38,11 @@ int main() {
 
   std::vector<Test *> tests;
   for (int i = 0; i < 10; i++) {
-    tests.push_back(new Test(i, 10));
+    Test* t = new Test(i, 10);
+    tests.push_back(t);
+
+    Logger::get_instance()->log(LogLevel::INFO,
+            "get from memory pool obj: {a: " + std::to_string(t->a) + ", b: " + std::to_string(t->b) + "}");
   }
 
   for (int i = 9; i >= 0; i--) {

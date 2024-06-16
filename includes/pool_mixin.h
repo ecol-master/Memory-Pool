@@ -5,7 +5,7 @@
 
 template <typename T, std::size_t Size> class PoolMixin {
 public:
-  static inline MemoryPool<T> pool{Size, {11, 12}};
+  static inline MemoryPool<T> pool{Size};
 
 public:
   void *operator new(std::size_t _size) { return pool.get(); };

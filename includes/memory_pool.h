@@ -21,12 +21,22 @@ template <typename T> struct D {
   };
 };
 
+
 // Memory Pool
 template <typename T> class MemoryPool {
   // values
 private:
   size_t size_;                  // contains max memory pool size
-  std::vector<T*> free_memory_; // stack with free momory
+  std::vector<T*> free_memory_;  // stack with free momory
+                                
+  // =========
+  void print_memory(){
+    for (T* elem: free_memory_){
+      std::cout << elem << "\n";
+    }
+    std::cout << "---\n\n";
+  }
+  // =========
 
 public:
   // Default constructor, does not allocate any memory
@@ -34,25 +44,29 @@ public:
 
   // Allocates memory for given number of objects
   MemoryPool(size_t _capacity) : size_{_capacity} {
+    //free_memory_ = std::vector<T*>(_capacity, T());
     for (int i = 0; i < _capacity; i++) {
-      T obj = T();
-      free_memory_.push_back(&obj);
+      free_memory_.push_back(::new T());
     }
+    print_memory();
   };
 
   // Allocates memory for given number of objects and initializes them with
   // `_default_value`
   MemoryPool(std::size_t _capacity, const T &_default_value)
       : size_{_capacity} {
+    //free_memory_ = std::vector<T*>(_capacity, nullptr);
     for (int i = 0; i < size_; i++) {
-      T obj = T(_default_value);
-      free_memory_.push_back(&obj);
+      free_memory_.push_back(::new T());
     }
+
+    print_memory();
   };
 
   ~MemoryPool() {
     free_memory_.clear();
   }
+
 
   // Re-allocates memory to fit new capacity
   void resize(size_t new_cap) {
@@ -77,7 +91,6 @@ public:
 
     // putting memory into vector with allocated memory
     *cell = T(std::forward<Args>(args)...);
-    // allocated_memory_.push_back(&cell);
 
     Logger::get_instance()->log(LogLevel::INFO,
                                 "GET new object from memory pool, size: " +
@@ -93,7 +106,8 @@ public:
       throw PoolIsEmpty();
     }
 
-    if (*free_memory_.begin() <= elem && elem <= *free_memory_.begin() + size_) {
+    //std::cout << "PUT, begin: " << *free_memory_.begin() << ", elem: " << elem << ", end: " << *free_memory_.begin() + size_ * sizeof(T) << "\n"; 
+    if (*free_memory_.begin() <= elem && elem <= *free_memory_.begin() + size_ * sizeof(T)) {
       elem->~T();
       free_memory_.push_back(elem);
       Logger::get_instance()->log(LogLevel::INFO,
