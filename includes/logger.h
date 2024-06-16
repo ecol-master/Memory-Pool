@@ -1,4 +1,4 @@
-#pragma  once
+#pragma once
 
 #include <fstream>
 #include <iostream>
@@ -25,7 +25,7 @@ private:
   std::ofstream log_file_;
 
 protected:
-  Logger(){
+  Logger() {
     log_file_.open(LOG_FILE, LOG_FLAGS);
     log_output_ = JOURNAL;
   };

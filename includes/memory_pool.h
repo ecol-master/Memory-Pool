@@ -25,9 +25,8 @@ template <typename T> struct D {
 template <typename T> class MemoryPool {
   // values
 private:
-  size_t size_; // contains max memory pool size 
-  std::vector<T> free_memory_; // stack with free momory
-  std::vector<T*> allocated_memory_; // vector with allocated memory
+  size_t size_;                  // contains max memory pool size
+  std::vector<T*> free_memory_; // stack with free momory
 
 public:
   // Default constructor, does not allocate any memory
@@ -35,24 +34,31 @@ public:
 
   // Allocates memory for given number of objects
   MemoryPool(size_t _capacity) : size_{_capacity} {
-    free_memory_ = std::vector<T>(_capacity);
+    for (int i = 0; i < _capacity; i++) {
+      T obj = T();
+      free_memory_.push_back(&obj);
+    }
   };
 
   // Allocates memory for given number of objects and initializes them with
   // `_default_value`
-  MemoryPool(std::size_t _capacity, const T &_default_value) : size_{_capacity} {
-    free_memory_ = std::vector<T>(_capacity, _default_value);
+  MemoryPool(std::size_t _capacity, const T &_default_value)
+      : size_{_capacity} {
+    for (int i = 0; i < size_; i++) {
+      T obj = T(_default_value);
+      free_memory_.push_back(&obj);
+    }
   };
 
   ~MemoryPool() {
     free_memory_.clear();
-    allocated_memory_.clear();
   }
 
   // Re-allocates memory to fit new capacity
   void resize(size_t new_cap) {
     Logger::get_instance()->log(
-        LogLevel::INFO, "RESIZE memory pool " + std::to_string(size_ - free_memory_.size()) +
+        LogLevel::INFO, "RESIZE memory pool " +
+                            std::to_string(size_ - free_memory_.size()) +
                             " -> " + std::to_string(new_cap));
     size_ = new_cap;
     free_memory_.resize(free_memory_.size() + new_cap - size_);
@@ -66,54 +72,40 @@ public:
     }
 
     // getting memory from 'free memory' stack
-    auto &cell = free_memory_[free_memory_.size() - 1];
+    T *cell = free_memory_.back();
     free_memory_.pop_back();
 
-    std::cout << "auto &cell - contains:" << &cell << std::endl;
-
-    // putting memory into vector with allocated memory 
-    cell = T(std::forward<Args>(args)...);
-    allocated_memory_.push_back(&cell);
+    // putting memory into vector with allocated memory
+    *cell = T(std::forward<Args>(args)...);
+    // allocated_memory_.push_back(&cell);
 
     Logger::get_instance()->log(LogLevel::INFO,
                                 "GET new object from memory pool, size: " +
                                     std::to_string(free_memory_.size()));
 
-    return &cell;
+    return cell;
   };
 
   // Returns object to pool, calls destructor.
   // Returns bool to indicate error (maybe object is not from this pool?)
   bool put(T *elem) {
-    std::cout << "T *elem contains: " << elem << std::endl;
     if (size_ == free_memory_.size()) {
       throw PoolIsEmpty();
     }
 
-    bool found;
-    for (int i = 0; i < allocated_memory_.size(); i++){
-      T* cell_ptr = allocated_memory_[i];
-
-      if (cell_ptr == elem){
-        found = true;
-        elem->~T();
-
-        free_memory_.push_back(*elem);
-        allocated_memory_.erase(allocated_memory_.begin() + i);
-        break;
-      }
-    }
-
-
-    if (found){
+    if (*free_memory_.begin() <= elem && elem <= *free_memory_.begin() + size_) {
+      elem->~T();
+      free_memory_.push_back(elem);
       Logger::get_instance()->log(LogLevel::INFO,
-                                "PUT object into memory pool, pool size: " +
-                                    std::to_string(free_memory_.size()));
-    }else{
-      Logger::get_instance()->log(LogLevel::INFO, "failed to put object into pool");
+                                  "Successfull PUT, pool size: " +
+                                      std::to_string(free_memory_.size()));
+      return true;
     }
 
-    return found;
+    Logger::get_instance()->log(LogLevel::INFO,
+                                "Failed PUT, pool size: " +
+                                    std::to_string(free_memory_.size()));
+    return false;
   };
 
   // Creates object in memory pool and provides unique pointer to it
